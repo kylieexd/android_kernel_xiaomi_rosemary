@@ -2,6 +2,13 @@
 # Makefile for the Linux sound card driver
 #
 
+# Optimize Size for sound driver
+SOUND_CCFLAGS := -Os -g0
+SOUND_LDFLAGS := -s
+ccflags-y += $(SOUND_CFLAGS)
+subdir-ccflags-y += $(SOUND_CFLAGS)
+ldflags-y += $(SOUND_LDFLAGS)
+
 obj-$(CONFIG_SOUND) += soundcore.o
 obj-$(CONFIG_DMASOUND) += oss/dmasound/
 obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ sh/ synth/ usb/ \
