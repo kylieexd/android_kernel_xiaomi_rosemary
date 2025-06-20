@@ -25,7 +25,7 @@
 #ifndef __MTK_MFG_COUNTER_H_
 #define __MTK_MFG_COUNTER_H_
 
-#include <mt-plat/mtk_gpu_utility.h>
+#include <mtk_gpu_utility.h>
 
 enum {
 	PMU_OK = 0,
@@ -34,9 +34,9 @@ enum {
 	PMU_RESET_VALUE = 2,
 };
 
-extern int (*mtk_get_gpu_pmu_init_fp)(GPU_PMU *pmus, int pmu_size, int *ret_size);
+extern int (*mtk_get_gpu_pmu_init_fp)(struct GPU_PMU *pmus, int pmu_size, int *ret_size);
 extern int (*mtk_get_gpu_pmu_deinit_fp)(void);
-extern int (*mtk_get_gpu_pmu_swapnreset_fp)(GPU_PMU *pmus, int pmu_size);
+extern int (*mtk_get_gpu_pmu_swapnreset_fp)(struct GPU_PMU *pmus, int pmu_size);
 extern int (*mtk_get_gpu_pmu_swapnreset_stop_fp)(void);
 /* Need to get current gpu freq from GPU DVFS module */
 extern unsigned int mt_gpufreq_get_cur_freq(void);

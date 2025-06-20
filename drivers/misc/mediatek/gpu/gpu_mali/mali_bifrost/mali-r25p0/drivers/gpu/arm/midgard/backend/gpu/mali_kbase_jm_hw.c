@@ -282,13 +282,13 @@ void kbase_job_hw_submit(struct kbase_device *kbdev,
 #ifdef CONFIG_GPU_TRACEPOINTS
 	if (!kbase_backend_nr_atoms_submitted(kbdev, js)) {
 		/* If this is the only job on the slot, trace it as starting */
-		char js_string[16];
+		//char js_string[16];
 
-		trace_gpu_sched_switch(
-				kbasep_make_job_slot_string(js, js_string,
-						sizeof(js_string)),
-				ktime_to_ns(katom->start_timestamp),
-				(u32)katom->kctx->id, 0, katom->work_id);
+		//trace_gpu_sched_switch(
+			//	kbasep_make_job_slot_string(js, js_string,
+			//			sizeof(js_string)),
+			//	ktime_to_ns(katom->start_timestamp),
+			//	(u32)katom->kctx->id, 0, katom->work_id);
 		kbdev->hwaccess.backend.slot_rb[js].last_context = katom->kctx;
 	}
 #endif

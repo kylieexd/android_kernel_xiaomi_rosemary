@@ -1,14 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (C) 2016 MediaTek Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifndef __GED_GLOBAL_H__
@@ -35,7 +27,7 @@ extern void (*mtk_gpu_dvfs_set_mode_fp)(int eMode);
 
 extern unsigned int (*mtk_get_gpu_sub_loading_fp)(void);
 extern unsigned long (*mtk_get_vsync_based_target_freq_fp)(void);
-extern void (*mtk_get_gpu_dvfs_from_fp)(MTK_GPU_DVFS_TYPE *peType,
+extern void (*mtk_get_gpu_dvfs_from_fp)(enum MTK_GPU_DVFS_TYPE *peType,
 	unsigned long *pulFreq);
 
 extern unsigned long (*mtk_get_gpu_bottom_freq_fp)(void);

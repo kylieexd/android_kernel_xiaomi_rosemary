@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <linux/semaphore.h>
@@ -2449,7 +2441,7 @@ GED_ERROR ged_kpi_system_init(void)
 		for (i = 0; i < GED_KPI_TOTAL_ITEMS; i++)
 			g_asKPI[i].ullWnd = 0x0 - 1;
 		gs_hashtable = ged_hashtable_create(10);
-
+		pr_info("[Hans] ged_kpi init done");
 #ifdef GED_ENABLE_TIMER_BASED_DVFS_MARGIN
 		spin_lock_init(&gs_hashtableLock);
 #endif /* GED_ENABLE_TIMER_BASED_DVFS_MARGIN */

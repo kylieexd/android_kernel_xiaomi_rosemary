@@ -3071,7 +3071,7 @@ page_owner=on loop.max_part=16";
 
 	mali@13040000 {
 		compatible =
-			"mediatek,mali", "arm,mali-midgard", "arm,mali-bifrost";
+			"mediatek,mali", "arm,mali-valhall";
 		reg = <0 0x13040000 0 0x10000>;
 		interrupts =
 			<GIC_SPI 309 IRQ_TYPE_LEVEL_LOW>,
@@ -3085,9 +3085,11 @@ page_owner=on loop.max_part=16";
 			"JOB",
 			"EVENT",
 			"PWR";
+
+		ged-supply = <&ged>;
 	};
 
-	gpufreq {
+	gpufreq: gpufreq {
 		compatible = "mediatek,mt6785-gpufreq";
 		clocks =
 			<&topckgen TOP_MUX_MFG>,
@@ -3111,6 +3113,11 @@ page_owner=on loop.max_part=16";
 			"mtcmos_mfg_core1",
 			"mtcmos_mfg_core2",
 			"mtcmos_mfg_core3";
+	};
+
+	ged: ged {
+		compatible = "mediatek,ged";
+		gpufreq-supply = <&gpufreq>;
 	};
 
 	mali_tb@13fbd000 {

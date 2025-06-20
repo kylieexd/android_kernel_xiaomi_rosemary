@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <linux/version.h>
@@ -24,9 +16,7 @@
 #include <linux/fb.h>
 #include <mt-plat/mtk_gpu_utility.h>
 
-#ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 #include <mtk_gpufreq.h>
-#endif
 
 #include "ged_base.h"
 #include "ged_hal.h"
@@ -43,7 +33,7 @@
 static struct dentry *gpsHALDir;
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 static struct dentry *gpsOppCostsEntry;
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 #endif
 static struct kobject *hal_kobj;
 
@@ -79,8 +69,8 @@ int tokenizer(char *pcSrc, int i32len, int *pi32IndexArray, int i32NumToken)
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef GED_DEBUG_FS
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
+#ifdef GED_DEBUG_FS
 uint64_t reset_base_us;
 static ssize_t ged_dvfs_opp_cost_write_entry
 (const char __user *pszBuffer, size_t uiCount, loff_t uiPosition, void *pvData)
@@ -212,8 +202,7 @@ const struct seq_operations gsDvfsOppCostsReadOps = {
 	.show = ged_dvfs_opp_cost_seq_show,
 };
 #endif
-#endif
-#ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
+
 //-----------------------------------------------------------------------------
 static ssize_t opp_logs_show(struct kobject *kobj,
 		struct kobj_attribute *attr,
@@ -261,7 +250,7 @@ static ssize_t opp_logs_show(struct kobject *kobj,
 }
 
 static KOBJ_ATTR_RO(opp_logs);
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 //-----------------------------------------------------------------------------
 static ssize_t total_gpu_freq_level_count_show(struct kobject *kobj,
@@ -773,12 +762,12 @@ GED_ERROR ged_hal_init(void)
 		"ged: failed to create opp_logs entry!\n");
 		goto ERROR;
 	}
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 #endif
 
 	err = ged_sysfs_create_dir(NULL, "hal", &hal_kobj);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create hal dir!\n");
+		GED_LOGE("Failed to create hal dir!\n");
 		goto ERROR;
 	}
 
@@ -786,14 +775,14 @@ GED_ERROR ged_hal_init(void)
 		&kobj_attr_total_gpu_freq_level_count);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE(
-			"ged: failed to create total_gpu_freq_level_count entry!\n");
+			"Failed to create total_gpu_freq_level_count entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_custom_boost_gpu_freq);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE(
-			"ged: failed to create custom_boost_gpu_freq entry!\n");
+			"Failed to create custom_boost_gpu_freq entry!\n");
 		goto ERROR;
 	}
 
@@ -801,46 +790,46 @@ GED_ERROR ged_hal_init(void)
 		&kobj_attr_custom_upbound_gpu_freq);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE(
-			"ged: failed to create custom_upbound_gpu_freq entry!\n");
+			"Failed to create custom_upbound_gpu_freq entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_current_freqency);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create current_freqency entry!\n");
+		GED_LOGE("Failed to create current_freqency entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_previous_freqency);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create previous_freqency entry!\n");
+		GED_LOGE("Failed to create previous_freqency entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_gpu_utilization);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create gpu_utilization entry!\n");
+		GED_LOGE("Failed to create gpu_utilization entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_gpu_boost_level);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create gpu_boost_level entry!\n");
+		GED_LOGE("Failed to create gpu_boost_level entry!\n");
 		goto ERROR;
 	}
+
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_opp_logs);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE("ged: failed to create opp_logs entry!\n");
 		goto ERROR;
 	}
-#endif
-
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 #ifdef MTK_GED_KPI
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_ged_kpi);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create ged_kpi entry!\n");
+		GED_LOGE("Failed to create ged_kpi entry!\n");
 		goto ERROR;
 	}
 #endif
@@ -848,7 +837,7 @@ GED_ERROR ged_hal_init(void)
 #if (defined(GED_ENABLE_FB_DVFS) && defined(GED_ENABLE_DYNAMIC_DVFS_MARGIN))
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_dvfs_margin_value);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create dvfs_margin_value entry!\n");
+		GED_LOGE("Failed to create dvfs_margin_value entry!\n");
 		goto ERROR;
 	}
 #endif
@@ -858,7 +847,7 @@ GED_ERROR ged_hal_init(void)
 		&kobj_attr_loading_base_dvfs_step);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE(
-			"ged: failed to create loading_base_dvfs_step entry!\n");
+			"Failed to create loading_base_dvfs_step entry!\n");
 		goto ERROR;
 	}
 #endif
@@ -868,7 +857,7 @@ GED_ERROR ged_hal_init(void)
 		&kobj_attr_timer_base_dvfs_margin);
 	if (unlikely(err != GED_OK)) {
 		GED_LOGE(
-			"ged: failed to create timer_base_dvfs_margin entry!\n");
+			"Failed to create timer_base_dvfs_margin entry!\n");
 		goto ERROR;
 	}
 #endif
@@ -876,14 +865,14 @@ GED_ERROR ged_hal_init(void)
 #ifdef GED_ENABLE_DVFS_LOADING_MODE
 	err = ged_sysfs_create_file(hal_kobj, &kobj_attr_dvfs_loading_mode);
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create dvfs_loading_mode entry!\n");
+		GED_LOGE("Failed to create dvfs_loading_mode entry!\n");
 		goto ERROR;
 	}
 #endif
 
 	ged_fb_notifier.notifier_call = ged_fb_notifier_callback;
 	if (fb_register_client(&ged_fb_notifier))
-		GED_LOGE("register fb_notifier fail!\n");
+		GED_LOGE("Register fb_notifier fail!\n");
 
 	return err;
 
@@ -913,7 +902,7 @@ void ged_hal_exit(void)
 #endif
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 	ged_sysfs_remove_file(hal_kobj, &kobj_attr_opp_logs);
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 	ged_sysfs_remove_file(hal_kobj, &kobj_attr_gpu_boost_level);
 	ged_sysfs_remove_file(hal_kobj, &kobj_attr_gpu_utilization);
 	ged_sysfs_remove_file(hal_kobj, &kobj_attr_previous_freqency);

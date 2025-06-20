@@ -1,14 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifndef __GED_BASE_H__
@@ -17,12 +9,14 @@
 #include <linux/compiler.h>
 #include "ged_type.h"
 
+#define GED_TAG "[GPU/GED]"
 #ifdef GED_DEBUG
-#define GED_LOGI(...) pr_debug("GED:" __VA_ARGS__)
+#define GED_LOGD(...) pr_debug(GED_TAG"[DEBUG]" __VA_ARGS__)
 #else
-#define GED_LOGI(...)
+#define GED_LOGD(...)
 #endif
-#define GED_LOGE(...) pr_debug("GED:" __VA_ARGS__)
+#define GED_LOGI(...) pr_info(GED_TAG"[INFO]" __VA_ARGS__)
+#define GED_LOGE(...) pr_err(GED_TAG"[ERROR]" __VA_ARGS__)
 #define GED_CONTAINER_OF(ptr, type, member) \
 	((type *)(((char *)ptr) - offsetof(type, member)))
 

@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <linux/version.h>
@@ -100,7 +92,7 @@ static void ged_monitor_3D_fence_work_cb(struct work_struct *psWork)
 	}
 
 	if (ged_monitor_3D_fence_debug > 0)
-		GED_LOGI("[-]3D fences count = %d\n", atomic_read(&g_i32Count));
+		GED_LOGD("[-]3D fences count = %d\n", atomic_read(&g_i32Count));
 
 	psMonitor = GED_CONTAINER_OF(psWork,
 		struct GED_MONITOR_3D_FENCE, sWork);
@@ -185,7 +177,7 @@ GED_ERROR ged_monitor_3D_fence_add(int fence_fd)
 	}
 
 	if (ged_monitor_3D_fence_debug > 0)
-		GED_LOGI("[+]3D fences count = %d\n", atomic_read(&g_i32Count));
+		GED_LOGD("[+]3D fences count = %d\n", atomic_read(&g_i32Count));
 
 #ifdef GED_DEBUG_MONITOR_3D_FENCE
 	ged_log_buf_print(ghLogBuf_GED,

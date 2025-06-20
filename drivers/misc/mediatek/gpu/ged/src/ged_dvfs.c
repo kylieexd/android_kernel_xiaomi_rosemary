@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifdef GED_DVFS_STRESS_TEST
@@ -70,10 +62,10 @@ static unsigned int g_lb_down_count = 1;
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 static struct GED_DVFS_OPP_STAT *g_aOppStat;
 static int g_num;
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 unsigned long long g_ns_gpu_on_ts;
 
-MTK_GPU_DVFS_TYPE g_CommitType;
+enum MTK_GPU_DVFS_TYPE g_CommitType;
 unsigned long g_ulCommitFreq;
 
 #ifdef ENABLE_COMMON_DVFS
@@ -403,7 +395,7 @@ bool ged_dvfs_cal_gpu_utilization(unsigned int *pui32Loading,
 				(TS_us - TS_base_us),
 				TS_us,
 				g_ui32CurFreqID);
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 		}
 		return true;
@@ -571,7 +563,7 @@ void ged_opp_stat_step(void)
 {
 	g_aOppStat[g_ui32PreFreqID].uMem.aTrans[g_ui32CurFreqID]++;
 }
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 	unsigned long ui32NewFreq, GED_DVFS_COMMIT_TYPE eCommitType)
@@ -627,7 +619,6 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 			ui32NewFreqID = (ui32NewFreqID) % 16;
 		}
 #endif
-
 		ged_commit_freq = ui32NewFreq;
 		ged_commit_opp_freq = mt_gpufreq_get_freq_by_idx(ui32NewFreqID);
 
@@ -654,7 +645,7 @@ bool ged_dvfs_gpu_freq_commit(unsigned long ui32NewFreqID,
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 				if (g_aOppStat)
 					ged_opp_stat_step();
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 			}
 		}
 		ged_log_perf_trace_counter("gpu_freq",
@@ -2030,7 +2021,7 @@ void ged_dvfs_sw_vsync_query_data(struct GED_DVFS_UM_QUERY_PACK *psQueryData)
 	psQueryData->ui32BoostValue = g_ui32BoostValue;
 }
 
-void ged_dvfs_track_latest_record(MTK_GPU_DVFS_TYPE *peType,
+void ged_dvfs_track_latest_record(enum MTK_GPU_DVFS_TYPE *peType,
 	unsigned long *pulFreq)
 {
 	*peType = g_CommitType;
@@ -2245,7 +2236,7 @@ static void ged_dvfs_deinit_opp_cost(void)
 
 	vfree(g_aOppStat);
 }
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 GED_ERROR ged_dvfs_probe(int pid)
 {
@@ -2391,7 +2382,7 @@ void ged_dvfs_system_exit(void)
 {
 #ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
 	ged_dvfs_deinit_opp_cost();
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 	mutex_destroy(&gsDVFSLock);
 	mutex_destroy(&gsVSyncOffsetLock);
 }

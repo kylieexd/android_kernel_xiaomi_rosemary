@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2010-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2010-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -115,7 +115,7 @@
 #include "platform/mtk_platform_common.h"
 #include <mtk_gpufreq.h>
 
-#if defined(MTK_GPU_BM_2)
+#if defined(MTK_GPU_BM_2) && !defined(GPU_BM_PORTING)
 #include <gpu_bm.h>
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
 #include <sspm_reservedmem_define.h>
@@ -172,7 +172,7 @@ static mali_kbase_capability_def kbase_caps_table[MALI_KBASE_NUM_CAPS] = {
 #endif
 };
 
-#if defined(MTK_GPU_BM_2)
+#if defined(MTK_GPU_BM_2) && !defined(GPU_BM_PORTING)
 static void get_rec_addr(void)
 {
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
@@ -2111,6 +2111,8 @@ static ssize_t kbase_read(struct file *filp, char __user *buf, size_t count, lof
 
 	if (count < sizeof(uevent))
 		return -ENOBUFS;
+
+	memset(&uevent, 0, sizeof(uevent));
 
 	do {
 		while (kbase_event_dequeue(kctx, &uevent)) {
@@ -5230,11 +5232,12 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 
 	// *** MTK *** : make sure gpufreq driver is ready
 	pr_info("%s start\n", __func__);
+#if !defined(CONFIG_MACH_MT6768) && !defined(CONFIG_MACH_MT6785)
 	if (mt_gpufreq_not_ready()) {
 		pr_info("gpufreq driver is not ready: %d\n", -EPROBE_DEFER);
 		return -EPROBE_DEFER;
 	}
-
+#endif
 	mali_kbase_print_cs_experimental();
 
 	kbdev = kbase_device_alloc();
@@ -5246,6 +5249,10 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 	kbdev->dev = &pdev->dev;
 	dev_set_drvdata(kbdev->dev, kbdev);
 
+#if defined(CONFIG_MACH_MT6768) || defined(CONFIG_MACH_MT6785)
+	err |= mtk_common_device_init(kbdev);
+	err |= mtk_platform_device_init(kbdev);
+#endif
 	err = kbase_device_init(kbdev);
 
 	if (err) {
@@ -5262,7 +5269,7 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 #if IS_ENABLED(CONFIG_PROC_FS)
 		mtk_common_procfs_init();
 #endif
-#if defined(MTK_GPU_BM_2)
+#if defined(MTK_GPU_BM_2) && !defined(GPU_BM_PORTING)
 		mtk_bandwith_resource_init(kbdev);
 #endif
 		dev_info(kbdev->dev,

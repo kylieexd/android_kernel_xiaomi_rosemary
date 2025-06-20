@@ -27,8 +27,17 @@ CONFIG_MALI_DEBUG := y
 ccflags-y += -I$(srctree)/include
 ccflags-y += -I$(srctree)/drivers/staging/android
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpufreq
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/mt-plat
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/ged/include
+ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6885" "mt6873" "mt6853"))
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpu_bm_k414
+else ifeq ($(CONFIG_MACH_MT6781),y)
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpu_bm_k414
+else
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpu_bm
+endif
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
 
 ccflags-$(CONFIG_DEBUG_FS) += -DCONFIG_DEBUG_FS
 ccflags-y += -DCONFIG_PROC_FS
@@ -77,7 +86,9 @@ endif
 
 # Set default policy always_on
 #ccflags-y += -DMTK_POWER_POLICY_AO
-
+#CONFIG_MTK_GPU_DEBUG CONFIG_MTK_GPU_DEBUG_DFD related func. defs not available so build error
+ifeq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6768" "mt6785"))
 ccflags-y += -DCONFIG_MTK_GPU_DEBUG
 ccflags-y += -DCONFIG_MTK_GPU_DEBUG_DFD
+endif
 ccflags-y += -DCONFIG_MTK_GPU_MEM_TRACK

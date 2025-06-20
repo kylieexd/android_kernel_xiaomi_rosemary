@@ -75,7 +75,9 @@
 #include "ipa/mali_kbase_ipa.h"
 
 #ifdef CONFIG_GPU_TRACEPOINTS
-#include <trace/events/gpu.h>
+/* This has been removed on kernel-4.19
+* #include <trace/events/gpu.h>
+*/
 #endif
 
 #include "mali_linux_trace.h"

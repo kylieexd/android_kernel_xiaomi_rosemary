@@ -259,6 +259,7 @@ static DEFINE_MUTEX(mt_gpufreq_power_lock);
 static unsigned int g_limited_idx_array[NUMBER_OF_LIMITED_IDX] = { 0 };
 static bool g_limited_ignore_array[NUMBER_OF_LIMITED_IDX] = { false };
 static void __iomem *g_apmixed_base;
+DEFINE_MUTEX(g_mfg_lock);
 
 #include "ged_log.h"
 #include "ged_base.h"

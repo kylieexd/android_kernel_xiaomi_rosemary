@@ -1,14 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifndef __GED_DVFS_H__
@@ -105,7 +97,7 @@ struct GED_DVFS_OPP_STAT {
 	uint64_t ui64Active;
 	uint64_t ui64Idle;
 };
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 #ifdef GED_ENABLE_DVFS_LOADING_MODE
 
@@ -163,7 +155,7 @@ void ged_dvfs_update_opp_cost(unsigned int loading,
 int ged_dvfs_query_opp_cost(struct GED_DVFS_OPP_STAT *psReport,
 	int i32NumOpp, bool bStript);
 int ged_dvfs_init_opp_cost(void);
-#endif
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
 GED_ERROR ged_dvfs_system_init(void);
 void ged_dvfs_system_exit(void);

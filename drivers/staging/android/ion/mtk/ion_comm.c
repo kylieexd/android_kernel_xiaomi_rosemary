@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <asm/page.h>
@@ -20,7 +12,7 @@
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
-#include "ion_priv.h"
+#include "../ion_priv.h"
 #include <linux/slab.h>
 #include <linux/mutex.h>
 //#include <mmprofile.h>
@@ -29,8 +21,8 @@
 #include <uapi/linux/sched/types.h>
 #include "ion_profile.h"
 #include "ion_drv_priv.h"
-#include "mtk/ion_drv.h"
-#include "mtk/mtk_ion.h"
+#include "ion_drv.h"
+#include "mtk_ion.h"
 
 struct task_struct *ion_comm_kthread;
 //wait_queue_head_t ion_comm_wq;

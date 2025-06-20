@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <asm/page.h>
@@ -20,7 +12,7 @@
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
-#include "ion_priv.h"
+#include "../ion_priv.h"
 #include <linux/slab.h>
 #include <linux/mutex.h>
 //#include <mmprofile.h>
@@ -37,7 +29,7 @@
 #include <uapi/linux/sched/types.h>
 #include "ion_profile.h"
 #include "ion_drv_priv.h"
-#include "mtk/ion_drv.h"
+#include "ion_drv.h"
 #include "mtk_ion.h"
 #include <linux/delay.h>
 #include <linux/time.h>
@@ -72,7 +64,7 @@ static inline unsigned long history_rec_test_busy(struct history_record
 						  unsigned int index)
 {
 	unsigned long *p = history_record->bitmap_busy + index / BITS_PER_LONG;
-	unsigned int bit_mask = 1UL << (index % BITS_PER_LONG);
+	int bit_mask = 1UL << (index % BITS_PER_LONG);
 
 	return *p & bit_mask;
 }
@@ -81,8 +73,7 @@ static inline void history_rec_set_busy(struct history_record
 					*history_record, unsigned int index)
 {
 	unsigned long *p = history_record->bitmap_busy + index / BITS_PER_LONG;
-	unsigned int bit_mask = 1UL << (index % BITS_PER_LONG);
-
+	int bit_mask = 1UL << (index % BITS_PER_LONG);
 	*p |= bit_mask;
 }
 
@@ -441,7 +432,7 @@ static struct hlist_head ion_str_hash[STR_HASH_BUCKET_NUM];
 DEFINE_SPINLOCK(ion_str_hash_lock);
 
 /* as tested, simple add hash is better than RS_hash & BKDR_hash ! */
-static unsigned int add_hash(const char *str, unsigned int len)
+static unsigned int add_hash(char *str, unsigned int len)
 {
 	unsigned int hash = 0, i;
 
@@ -592,7 +583,7 @@ static int ion_client_record_show(struct seq_file *seq, void *record,
 			client_name = client_record->client_name->str;
 		if (client_record->dbg_name)
 			dbg_name = client_record->dbg_name->str;
-		seq_printf(seq, "  %16.s(%16.s) %16zu 0x%p\n", client_name,
+		seq_printf(seq, "%16.s(%16.s) %16zu 0x%p\n", client_name,
 			   dbg_name, client_record->size,
 			   client_record->address);
 	} else {
@@ -743,8 +734,7 @@ static int ion_history_record(void *data)
 							NULL, total_size,
 							CLIENT_ADDRESS_TOTAL);
 				/* record page pool info */
-				ion_mm_heap_for_each_pool(
-					write_mm_page_pool);
+				ion_mm_heap_for_each_pool(write_mm_page_pool);
 			}
 		}
 
@@ -762,8 +752,7 @@ static int ion_history_record(void *data)
 
 				end = sched_clock();
 				if (end - start > 1000000000ULL) {/* 1s */
-					IONMSG(
-					       "warn: ion history hold:%lluns from:%llu\n",
+					IONMSG("warn: ion history hold:%lluns from:%llu\n",
 					       end - start, start);
 					ion_client_write_record
 					    (g_client_history,

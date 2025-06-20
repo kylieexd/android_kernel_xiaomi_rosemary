@@ -11,9 +11,9 @@
 # GNU General Public License for more details.
 #
 
-GED_TOP = $(srctree)/drivers/misc/mediatek/gpu/ged
+GED_TOP = $(srctree)/drivers/misc/mediatek/gpu/ged/
 MTK_TOP = $(srctree)/drivers/misc/mediatek/
-GPU_TOP = $(srctree)/drivers/gpu/mediatek/
+GPU_TOP = $(srctree)/drivers/misc/mediatek/gpu/
 
 subdir-ccflags-y += -Wno-error
 
@@ -26,8 +26,6 @@ ccflags-y += -DMTK_GPUFREQ_V1
 #ccflags-y += -DGED_KPI_MET_DEBUG
 ccflags-y += -DMTK_GED_KPI
 ccflags-y += -DGED_KPI_CPU_BOOST
-ccflags-y += -DGED_SKI_SUPPORT
-ged-y += src/ged_ski.o
 
 ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
 ccflags-y += -DGED_ENABLE_FB_DVFS
@@ -35,7 +33,6 @@ ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
 ccflags-y += -DGED_ENABLE_DVFS_LOADING_MODE
-ccflags-y += -DMTK_CPUFREQ
 endif
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
@@ -47,7 +44,7 @@ ccflags-y += \
     -I$(srctree)/drivers/misc/mediatek/sspm/mt6781
 endif
 
-
+$(info $$GED: CONFIG_MTK_PLATFORM is [${CONFIG_MTK_PLATFORM}])
 #
 # mt6853 family config (mt6833)
 #
@@ -56,14 +53,15 @@ ccflags-y += -DMTK_GPUFREQ_V1
 #ccflags-y += -DGED_KPI_MET_DEBUG
 ccflags-y += -DMTK_GED_KPI
 ccflags-y += -DGED_KPI_CPU_BOOST
+$(info $$GED: CONFIG_MTK_PLATFORM is defined [${CONFIG_MTK_PLATFORM}])
 
 ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
 ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 ccflags-y += -DGED_ENABLE_DVFS_LOADING_MODE
+$(info $$GED: CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT is defined [${CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT}])
 endif
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
@@ -109,7 +107,6 @@ ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 ccflags-y += -DGED_ENABLE_DVFS_LOADING_MODE
 endif
 
@@ -147,7 +144,6 @@ ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 ccflags-y += -DGED_ENABLE_DVFS_LOADING_MODE
 endif
 
@@ -169,15 +165,11 @@ ifeq ($(CONFIG_MACH_MT6785),y)
 ccflags-y += -DMTK_GED_KPI
 ccflags-y += -DGED_KPI_CPU_BOOST
 
-ccflags-y += -DGED_SKI_SUPPORT
-ged-y += src/ged_ski.o
-
 ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
 ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 endif
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
@@ -203,13 +195,13 @@ ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 endif
 
-ccflags-y += -DCONFIG_MTK_QOS_V1_SUPPORT
+#ccflags-y += -DCONFIG_MTK_QOS_V1_SUPPORT
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3/$(subst ",,$(CONFIG_MTK_PLATFORM))
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpufreq/$(subst ",,$(CONFIG_MTK_PLATFORM))
 ccflags-y += \
     -I$(MTK_TOP)/base/power/$(subst ",,$(CONFIG_MTK_PLATFORM))/ \
     -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/videox \
@@ -231,15 +223,15 @@ ccflags-y += -DGED_ENABLE_FB_DVFS
 ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
 ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
 ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
-ccflags-y += -DMTK_CPUFREQ
 endif
 
 #ccflags-y += -DGED_KPI_CPU_INFO
 #ccflags-y += -DGED_KPI_DFRC
-ccflags-y += -DCONFIG_MTK_QOS_V1_SUPPORT
+#ccflags-y += -DCONFIG_MTK_QOS_V1_SUPPORT
 
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3/$(subst ",,$(CONFIG_MTK_PLATFORM))
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpufreq/$(subst ",,$(CONFIG_MTK_PLATFORM))
 ccflags-y += \
     -I$(MTK_TOP)/base/power/$(subst ",,$(CONFIG_MTK_PLATFORM))/ \
     -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/videox \
@@ -450,6 +442,76 @@ endif
 
 
 #
+# mt6761 config
+#
+ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6761"))
+#ccflags-y += -DGED_KPI_MET_DEBUG
+ccflags-y += -DMTK_GED_KPI
+ccflags-y += -DGED_KPI_CPU_BOOST
+
+ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
+ccflags-y += -DGED_ENABLE_FB_DVFS
+ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
+ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
+ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
+endif
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3/$(subst ",,$(CONFIG_MTK_PLATFORM))
+ccflags-y += \
+    -I$(MTK_TOP)/base/power/$(subst ",,$(CONFIG_MTK_PLATFORM))/ \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/videox \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/dispsys \
+    -I$(srctree)/drivers/misc/mediatek/sspm/$(subst ",,$(CONFIG_MTK_PLATFORM))
+endif
+
+#
+# mt6765 config
+#
+ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6765"))
+#ccflags-y += -DGED_KPI_MET_DEBUG
+ccflags-y += -DMTK_GED_KPI
+ccflags-y += -DGED_KPI_CPU_BOOST
+
+ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
+ccflags-y += -DGED_ENABLE_FB_DVFS
+ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
+ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
+ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
+endif
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3/$(subst ",,$(CONFIG_MTK_PLATFORM))
+ccflags-y += \
+    -I$(MTK_TOP)/base/power/$(subst ",,$(CONFIG_MTK_PLATFORM))/ \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/videox \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/dispsys \
+    -I$(srctree)/drivers/misc/mediatek/sspm/$(subst ",,$(CONFIG_MTK_PLATFORM))
+endif
+
+#
+# mt6779 config
+#
+ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6779"))
+#ccflags-y += -DGED_KPI_MET_DEBUG
+ccflags-y += -DMTK_GED_KPI
+ccflags-y += -DGED_KPI_CPU_BOOST
+
+ifeq ($(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT),y)
+ccflags-y += -DGED_ENABLE_FB_DVFS
+ccflags-y += -DGED_ENABLE_DYNAMIC_DVFS_MARGIN
+ccflags-y += -DGED_CONFIGURE_LOADING_BASE_DVFS_STEP
+ccflags-y += -DGED_ENABLE_TIMER_BASED_DVFS_MARGIN
+ccflags-y += -DGED_MODULE_LATE_INIT
+endif
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq/v3/$(subst ",,$(CONFIG_MTK_PLATFORM))
+ccflags-y += \
+    -I$(MTK_TOP)/base/power/$(subst ",,$(CONFIG_MTK_PLATFORM))/ \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/videox \
+    -I$(srctree)/drivers/misc/mediatek/video/$(subst ",,$(CONFIG_MTK_PLATFORM))/dispsys \
+    -I$(srctree)/drivers/misc/mediatek/sspm/$(subst ",,$(CONFIG_MTK_PLATFORM))
+endif
+
+#
 # kiboplus config
 #
 ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "kiboplus"))
@@ -469,7 +531,8 @@ endif
 #
 ccflags-y += -DMET_USER_EVENT_SUPPORT -DMTK_GPU_DVFS
 ccflags-y += -DGED_DVFS_DEBUG_BUF
-#ccflags-y += -DGED_KPI_DEBUG
+ccflags-y += -DCONFIG_MTK_GPU_OPP_STATS_SUPPORT
+# ccflags-y += -DGED_KPI_DEBUG
 
 VER := eng
 
@@ -513,6 +576,7 @@ ccflags-y += \
 ccflags-y += \
     -I$(srctree)/include/ \
     -I$(MTK_TOP)/include/ \
+	-I$(MTK_TOP)/include/mt-plat/ \
     -I$(GED_TOP)/include/ \
     -I$(GPU_TOP)/hal/ \
     -I$(GPU_TOP)/ \
@@ -520,7 +584,7 @@ ccflags-y += \
     -I$(srctree)/drivers/misc/mediatek/video/include \
     -I$(srctree)/drivers/misc/mediatek/lcm/inc/ \
     -I$(srctree)/drivers/misc/mediatek/dfrc/ \
-    -I$(srctree)/drivers/gpu/mediatek/gpufreq/include/ \
+    -I$(srctree)/drivers/misc/mediatek/gpu/gpufreq/ \
     -I$(srctree)/drivers/misc/mediatek/sspm/
 
 obj-$(CONFIG_MTK_GPU_SUPPORT) += ged.o

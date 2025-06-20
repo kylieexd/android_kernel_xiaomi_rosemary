@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <linux/version.h>
@@ -214,7 +206,12 @@ GED_ERROR __ged_log_buf_vprint(struct GED_LOG_BUF *psGEDLogBuf,
 	buf_n = psGEDLogBuf->i32BufferSize - psGEDLogBuf->i32BufferCurrent;
 	len = vsnprintf(psGEDLogBuf->pcBuffer + psGEDLogBuf->i32BufferCurrent,
 		buf_n, fmt, args);
-
+	// To avoid when pcBuffer[-x] == 10('\n') tampered with 0.
+	if (len <= 0) {
+		spin_unlock_irqrestore(&psGEDLogBuf->sSpinLock,
+			psGEDLogBuf->ulIRQFlags);
+		return GED_OK;
+	}
 	/* if 'len' >= 'buf_n', the resulting string is truncated.
 	 * let 'len' be a safe number
 	 */
@@ -228,6 +225,8 @@ GED_ERROR __ged_log_buf_vprint(struct GED_LOG_BUF *psGEDLogBuf,
 			0;
 		len -= 1;
 	}
+
+	buf_n -= len;
 
 	if (attrs & GED_LOG_ATTR_RINGBUFFER) {
 		int i;
@@ -493,7 +492,7 @@ GED_LOG_BUF_HANDLE ged_log_buf_alloc(
 	psGEDLogBuf = (struct GED_LOG_BUF *)
 		ged_alloc(sizeof(struct GED_LOG_BUF));
 	if (psGEDLogBuf == NULL) {
-		GED_LOGE("ged: failed to allocate log buf!\n");
+		GED_LOGE("Failed to allocate psGEDLogBuf!\n");
 		return (GED_LOG_BUF_HANDLE)0;
 	}
 
@@ -517,7 +516,7 @@ GED_LOG_BUF_HANDLE ged_log_buf_alloc(
 	psGEDLogBuf->pMemory = ged_alloc(psGEDLogBuf->i32MemorySize);
 	if (psGEDLogBuf->pMemory == NULL) {
 		ged_free(psGEDLogBuf, sizeof(struct GED_LOG_BUF));
-		GED_LOGE("ged: failed to allocate log buf!\n");
+		GED_LOGE("Failed to allocate psGEDLogBuf->pMemory!\n");
 		return (GED_LOG_BUF_HANDLE)0;
 	}
 
@@ -569,7 +568,7 @@ GED_LOG_BUF_HANDLE ged_log_buf_alloc(
 		cx = snprintf(psGEDLogBuf->acNodeName,
 			GED_LOG_BUF_NODE_NAME_LENGTH, "%s", pszNodeName);
 		if (cx < 0 || cx >= GED_LOG_BUF_NODE_NAME_LENGTH) {
-			GED_LOGE("ged: failed to snprintf (%s)!\n",
+			GED_LOGE("Failed to snprintf (%s)!\n",
 				pszNodeName);
 			write_lock_bh(&gsGEDLogBufList.sLock);
 			list_del(&psGEDLogBuf->sList);
@@ -589,7 +588,7 @@ GED_LOG_BUF_HANDLE ged_log_buf_alloc(
 			&psGEDLogBuf->psEntry);
 
 		if (unlikely(err)) {
-			GED_LOGE("ged: failed to create %s entry, err(%d)!\n",
+			GED_LOGE("Failed to create %s entry, err(%d)!\n",
 				pszNodeName, err);
 			ged_log_buf_free(psGEDLogBuf->ulHashNodeID);
 			return (GED_LOG_BUF_HANDLE)0;
@@ -600,13 +599,13 @@ GED_LOG_BUF_HANDLE ged_log_buf_alloc(
 	error = ged_hashtable_insert(ghHashTable, psGEDLogBuf,
 		&psGEDLogBuf->ulHashNodeID);
 	if (error != GED_OK) {
-		GED_LOGE("ged: failed to insert into a hash table, err(%d)!\n",
+		GED_LOGE("Failed to insert into a hash table, err(%d)!\n",
 			error);
 		ged_log_buf_free(psGEDLogBuf->ulHashNodeID);
 		return (GED_LOG_BUF_HANDLE)0;
 	}
 
-	GED_LOGI("%s OK\n", __func__);
+	GED_LOGD("@%s OK\n", __func__);
 
 	while (__ged_log_buf_check_get_early_list(
 		psGEDLogBuf->ulHashNodeID, pszName)) {
@@ -840,7 +839,7 @@ void ged_log_buf_free(GED_LOG_BUF_HANDLE hLogBuf)
 		ged_free(psGEDLogBuf->pMemory, psGEDLogBuf->i32MemorySize);
 		ged_free(psGEDLogBuf, sizeof(struct GED_LOG_BUF));
 
-		GED_LOGI("%s OK\n", __func__);
+		GED_LOGD("@%s OK\n", __func__);
 	}
 }
 EXPORT_SYMBOL(ged_log_buf_free);
@@ -1052,7 +1051,7 @@ GED_ERROR ged_log_system_init(void)
 			&gpsGEDLogEntry);
 
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create gedlog entry!\n");
+		GED_LOGE("Failed to create gedlog entry!\n");
 		goto ERROR;
 	}
 
@@ -1063,7 +1062,7 @@ GED_ERROR ged_log_system_init(void)
 
 	if (unlikely(err != GED_OK)) {
 		err = GED_ERROR_FAIL;
-		GED_LOGE("ged: failed to create logbufs dir!\n");
+		GED_LOGE("Failed to create logbufs dir!\n");
 		goto ERROR;
 	}
 #endif /* GED_DEBUG_FS */
@@ -1071,7 +1070,7 @@ GED_ERROR ged_log_system_init(void)
 	ghHashTable = ged_hashtable_create(5);
 	if (!ghHashTable) {
 		err = GED_ERROR_OOM;
-		GED_LOGE("ged: failed to create a hash table!\n");
+		GED_LOGE("Failed to create a hash table!\n");
 		goto ERROR;
 	}
 
@@ -1197,9 +1196,17 @@ void ged_log_dump(GED_LOG_BUF_HANDLE hLogBuf)
 static unsigned long __read_mostly tracing_mark_write_addr;
 static inline void __mt_update_tracing_mark_write_addr(void)
 {
-	if (unlikely(tracing_mark_write_addr == 0))
+/*
+ * kallsyms_lookup_name can only be used by build-in module in
+ * kernel-4.19, and it cause build error in gki flavor, so we check
+ * CONFIG_MTK_GPU_SUPPORT=y
+ */
+#ifdef CONFIG_MTK_GPU_SUPPORT
+	if (unlikely(tracing_mark_write_addr == 0)) {
 		tracing_mark_write_addr =
 			kallsyms_lookup_name("tracing_mark_write");
+	}
+#endif
 }
 void ged_log_trace_begin(char *name)
 {

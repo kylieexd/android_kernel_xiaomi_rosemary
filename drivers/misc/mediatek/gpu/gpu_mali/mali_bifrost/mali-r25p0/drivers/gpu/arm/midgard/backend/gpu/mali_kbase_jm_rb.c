@@ -1222,7 +1222,7 @@ void kbase_gpu_complete_hw(struct kbase_device *kbdev, int js,
 
 		if (next_katom && next_katom->gpu_rb_state ==
 						KBASE_ATOM_GPU_RB_SUBMITTED) {
-			char js_string[16];
+/*			char js_string[16];
 
 			trace_gpu_sched_switch(kbasep_make_job_slot_string(js,
 							js_string,
@@ -1230,6 +1230,7 @@ void kbase_gpu_complete_hw(struct kbase_device *kbdev, int js,
 						ktime_to_ns(*end_timestamp),
 						(u32)next_katom->kctx->id, 0,
 						next_katom->work_id);
+						*/
 			kbdev->hwaccess.backend.slot_rb[js].last_context =
 							next_katom->kctx;
 #if defined(MTK_GPU_BM_2)
@@ -1241,13 +1242,14 @@ void kbase_gpu_complete_hw(struct kbase_device *kbdev, int js,
                         }
 #endif
 		} else {
-			char js_string[16];
+/*			char js_string[16];
 
 			trace_gpu_sched_switch(kbasep_make_job_slot_string(js,
 							js_string,
 							sizeof(js_string)),
 						ktime_to_ns(ktime_get()), 0, 0,
 						0);
+						*/
 			kbdev->hwaccess.backend.slot_rb[js].last_context = 0;
 		}
 	}

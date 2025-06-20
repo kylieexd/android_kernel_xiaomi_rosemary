@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2016 MediaTek Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include <linux/cdev.h>
@@ -30,6 +22,9 @@
 #include <linux/semaphore.h>
 #include <linux/workqueue.h>
 #include <linux/kthread.h>
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <linux/of_address.h>
 #include <mt-plat/aee.h>
 
 #ifdef GED_DEBUG_FS
@@ -46,10 +41,36 @@
 #include "ged_ge.h"
 #include "ged_gpu_tuner.h"
 
-#ifdef GED_SKI_SUPPORT
-#include "ged_ski.h"
+/**
+ * ===============================================
+ * SECTION : Local functions declaration
+ * ===============================================
+ */
+static int ged_open(struct inode *inode, struct file *filp);
+static int ged_release(struct inode *inode, struct file *filp);
+static unsigned int ged_poll(struct file *file,
+	struct poll_table_struct *ptable);
+static ssize_t ged_read(struct file *filp,
+	char __user *buf, size_t count, loff_t *f_pos);
+static ssize_t ged_write(struct file *filp,
+	const char __user *buf, size_t count, loff_t *f_pos);
+static long ged_dispatch(struct file *pFile,
+	struct GED_BRIDGE_PACKAGE *psBridgePackageKM);
+static long ged_ioctl(struct file *pFile,
+	unsigned int ioctlCmd, unsigned long arg);
+#ifdef CONFIG_COMPAT
+static long ged_ioctl_compat(struct file *pFile,
+	unsigned int ioctlCmd, unsigned long arg);
 #endif
+static int ged_pdrv_probe(struct platform_device *pdev);
+static void ged_exit(void);
+static int ged_init(void);
 
+/**
+ * ===============================================
+ * SECTION : Local variables definition
+ * ===============================================
+ */
 #define GED_DRIVER_DEVICE_NAME "ged"
 
 static GED_LOG_BUF_HANDLE ghLogBuf_GPU;
@@ -74,13 +95,40 @@ GED_LOG_BUF_HANDLE ghLogBuf_DVFS;
 
 GED_LOG_BUF_HANDLE gpufreq_ged_log;
 
+static const struct of_device_id g_ged_of_match[] = {
+	{ .compatible = "mediatek,ged" },
+	{ /* sentinel */ }
+};
+static struct platform_driver g_ged_pdrv = {
+	.probe = ged_pdrv_probe,
+	.remove = NULL,
+	.driver = {
+		.name = "ged",
+		.owner = THIS_MODULE,
+		.of_match_table = g_ged_of_match,
+	},
+};
+
+static const struct file_operations ged_fops = {
+	.owner = THIS_MODULE,
+	.open = ged_open,
+	.release = ged_release,
+	.poll = ged_poll,
+	.read = ged_read,
+	.write = ged_write,
+	.unlocked_ioctl = ged_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = ged_ioctl_compat,
+#endif
+};
+
 /******************************************************************************
  * GED File operations
  *****************************************************************************/
 static int ged_open(struct inode *inode, struct file *filp)
 {
 	filp->private_data = NULL;
-	GED_LOGE("%s:%d:%d\n", __func__, MAJOR(inode->i_rdev),
+	GED_LOGD("@%s: %d:%d\n", __func__, MAJOR(inode->i_rdev),
 		MINOR(inode->i_rdev));
 	return 0;
 }
@@ -94,7 +142,7 @@ static int ged_release(struct inode *inode, struct file *filp)
 
 		free_func(filp->private_data);
 	}
-	GED_LOGE("%s:%d:%d\n", __func__, MAJOR(inode->i_rdev),
+	GED_LOGD("@%s: %d:%d\n", __func__, MAJOR(inode->i_rdev),
 		MINOR(inode->i_rdev));
 	return 0;
 }
@@ -137,6 +185,14 @@ static long ged_dispatch(struct file *pFile,
 					psBridgePackageKM->ui32FunctionID)) {
 				inputBufferSize = sizeof(int) +
 				sizeof(uint32_t) * GE_ALLOC_STRUCT_NUM;
+				// hardcode region_num = GE_ALLOC_STRUCT_NUM,
+				// need check input buffer size
+				if (psBridgePackageKM->i32InBufferSize <
+					inputBufferSize) {
+					GED_LOGE("Failed to regoin_num,it must be %d\n",
+						GE_ALLOC_STRUCT_NUM);
+					goto dispatch_exit;
+				}
 			}
 
 			if (inputBufferSize <= KMALLOC_MAX_SIZE)
@@ -148,7 +204,7 @@ static long ged_dispatch(struct file *pFile,
 			if (ged_copy_from_user(pvIn,
 				psBridgePackageKM->pvParamIn,
 				inputBufferSize) != 0) {
-				GED_LOGE("ged_copy_from_user fail\n");
+				GED_LOGE("Failed to ged_copy_from_user\n");
 				goto dispatch_exit;
 			}
 		}
@@ -169,7 +225,7 @@ static long ged_dispatch(struct file *pFile,
 		> psBridgePackageKM->i32InBufferSize ||\
 		sizeof(struct GED_BRIDGE_OUT_##struct_name)\
 		> psBridgePackageKM->i32OutBufferSize) {\
-		GED_LOGE("GED_BRIDGE_COMMAND_##cmd fail io_size:",\
+		GED_LOGE("GED_BRIDGE_COMMAND_##cmd failed io_size:",\
 		"%d/%d, expected: %zu/%zu",\
 		psBridgePackageKM->i32InBufferSize,\
 		psBridgePackageKM->i32OutBufferSize,\
@@ -295,7 +351,7 @@ ged_ioctl(struct file *pFile, unsigned int ioctlCmd, unsigned long arg)
 	psBridgePackageKM = &sBridgePackageKM;
 	if (ged_copy_from_user(psBridgePackageKM, psBridgePackageUM,
 		sizeof(struct GED_BRIDGE_PACKAGE)) != 0) {
-		GED_LOGE("Fail to ged_copy_from_user\n");
+		GED_LOGE("Failed to ged_copy_from_user\n");
 		goto unlock_and_return;
 	}
 
@@ -330,7 +386,7 @@ ged_ioctl_compat(struct file *pFile, unsigned int ioctlCmd, unsigned long arg)
 	if (ged_copy_from_user(psBridgePackageKM32,
 		psBridgePackageUM32,
 		sizeof(struct GED_BRIDGE_PACKAGE_32)) != 0) {
-		GED_LOGE("Fail to ged_copy_from_user\n");
+		GED_LOGE("Failed to ged_copy_from_user\n");
 		goto unlock_and_return;
 	}
 
@@ -356,190 +412,77 @@ unlock_and_return:
 /******************************************************************************
  * Module related
  *****************************************************************************/
-
 /*
  * ged driver probe
  */
 static int ged_pdrv_probe(struct platform_device *pdev)
 {
-#ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
-	int ret;
+	int err;
 
-	ret = ged_dvfs_init_opp_cost();
-	if (ret) {
-		GED_LOGE("@%s: failed to probe ged driver (%d)\n",
-		__func__, ret);
-	}
-
-	return ret;
-#else
-	return 0;
-#endif
-}
-
-static const struct of_device_id g_ged_of_match[] = {
-	{ .compatible = "mediatek,ged" },
-	{ /* sentinel */ }
-};
-static struct platform_driver g_ged_pdrv = {
-	.probe = ged_pdrv_probe,
-	.remove = NULL,
-	.driver = {
-		.name = "ged",
-		.owner = THIS_MODULE,
-		.of_match_table = g_ged_of_match,
-	},
-};
-
-
-
-static const struct file_operations ged_fops = {
-	.owner = THIS_MODULE,
-	.open = ged_open,
-	.release = ged_release,
-	.poll = ged_poll,
-	.read = ged_read,
-	.write = ged_write,
-	.unlocked_ioctl = ged_ioctl,
-#ifdef CONFIG_COMPAT
-	.compat_ioctl = ged_ioctl_compat,
-#endif
-};
-
-static void ged_exit(void)
-{
-#ifndef GED_BUFFER_LOG_DISABLE
-	ged_log_buf_free(gpufreq_ged_log);
-	gpufreq_ged_log = 0;
-
-#ifdef GED_DVFS_DEBUG_BUF
-	ged_log_buf_free(ghLogBuf_DVFS);
-	ghLogBuf_DVFS = 0;
-#endif
-
-	ged_log_buf_free(ghLogBuf_ftrace);
-	ghLogBuf_ftrace = 0;
-	ged_log_buf_free(ghLogBuf_FENCE);
-	ghLogBuf_FENCE = 0;
-	ged_log_buf_free(ghLogBuf_HWC);
-	ghLogBuf_HWC = 0;
-	ged_log_buf_free(ghLogBuf_HWC_ERR);
-	ghLogBuf_HWC_ERR = 0;
-
-#ifdef GED_DEBUG
-	ged_log_buf_free(ghLogBuf_GED);
-	ghLogBuf_GED = 0;
-	ged_log_buf_free(ghLogBuf_GLES);
-	ghLogBuf_GLES = 0;
-#endif
-
-	ged_log_buf_free(ghLogBuf_GPU);
-	ghLogBuf_GPU = 0;
-#endif /* GED_BUFFER_LOG_DISABLE */
-
-#ifdef GED_SKI_SUPPORT
-	ged_ski_exit();
-#endif
-
-	ged_gpu_tuner_exit();
-
-	ged_kpi_system_exit();
-
-	ged_ge_exit();
-
-	ged_dvfs_system_exit();
-
-	ged_notify_sw_vsync_system_exit();
-
-	ged_hal_exit();
-
-	ged_log_system_exit();
-
-#ifdef GED_DEBUG_FS
-	ged_debugFS_exit();
-#endif
-
-	ged_sysfs_exit();
-
-	remove_proc_entry(GED_DRIVER_DEVICE_NAME, NULL);
-
-	platform_driver_unregister(&g_ged_pdrv);
-}
-
-static int ged_init(void)
-{
-	GED_ERROR err = GED_ERROR_FAIL;
+	GED_LOGI("@%s: start to probe ged driver\n", __func__);
 
 	if (proc_create(GED_DRIVER_DEVICE_NAME, 0644, NULL, &ged_fops)
 		== NULL) {
 		err = GED_ERROR_FAIL;
-		GED_LOGE("ged: failed to register ged proc entry!\n");
+		GED_LOGE("Failed to register ged proc entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_sysfs_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init sys FS!\n");
+		GED_LOGE("Failed to init sys FS!\n");
 		goto ERROR;
 	}
 
 #ifdef GED_DEBUG_FS
 	err = ged_debugFS_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init debug FS!\n");
+		GED_LOGE("Failed to init debug FS!\n");
 		goto ERROR;
 	}
 #endif
 
 	err = ged_log_system_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create gedlog entry!\n");
+		GED_LOGE("Failed to create gedlog entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_hal_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to create hal entry!\n");
+		GED_LOGE("Failed to create hal entry!\n");
 		goto ERROR;
 	}
 
 	err = ged_notify_sw_vsync_system_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init notify sw vsync!\n");
+		GED_LOGE("Failed to init notify sw vsync!\n");
 		goto ERROR;
 	}
 
 	err = ged_dvfs_system_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init common dvfs!\n");
+		GED_LOGE("Failed to init common dvfs!\n");
 		goto ERROR;
 	}
 
 	err = ged_ge_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init gralloc_extra!\n");
+		GED_LOGE("Failed to init gralloc_extra!\n");
 		goto ERROR;
 	}
 
 	err = ged_kpi_system_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init KPI!\n");
+		GED_LOGE("Failed to init KPI!\n");
 		goto ERROR;
 	}
 
 	err = ged_gpu_tuner_init();
 	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init GPU Tuner!\n");
+		GED_LOGE("Failed to init GPU Tuner!\n");
 		goto ERROR;
 	}
-
-#ifdef GED_SKI_SUPPORT
-	err = ged_ski_init();
-	if (unlikely(err != GED_OK)) {
-		GED_LOGE("ged: failed to init ski!\n");
-		goto ERROR;
-	}
-#endif
 
 #ifndef GED_BUFFER_LOG_DISABLE
 	ghLogBuf_GPU = ged_log_buf_alloc(512, 128 * 512,
@@ -590,25 +533,106 @@ static int ged_init(void)
 	gpufreq_ged_log = 0;
 #endif /* GED_BUFFER_LOG_DISABLE */
 
-/* register platform driver */
-	err = platform_driver_register(&g_ged_pdrv);
+#ifdef CONFIG_MTK_GPU_OPP_STATS_SUPPORT
+	err = ged_dvfs_init_opp_cost();
 	if (err) {
-		GED_LOGE("@%s: failed to register ged driver\n",
-		__func__);
-		/* fall through as no impact */
+		GED_LOGE("@%s: failed to probe ged driver (%d)\n", __func__, err);
 	}
+#endif /* CONFIG_MTK_GPU_OPP_STATS_SUPPORT */
 
-	return 0;
+	GED_LOGI("@%s: ged driver probe done\n", __func__);
 
 ERROR:
-	ged_exit();
+	return err;
+}
+/*
+ * unregister the gpufreq driver, remove fs node
+ */
+static void ged_exit(void)
+{
+#ifndef GED_BUFFER_LOG_DISABLE
+	ged_log_buf_free(gpufreq_ged_log);
+	gpufreq_ged_log = 0;
 
-	return -EFAULT;
+#ifdef GED_DVFS_DEBUG_BUF
+	ged_log_buf_free(ghLogBuf_DVFS);
+	ghLogBuf_DVFS = 0;
+#endif
+
+	ged_log_buf_free(ghLogBuf_ftrace);
+	ghLogBuf_ftrace = 0;
+	ged_log_buf_free(ghLogBuf_FENCE);
+	ghLogBuf_FENCE = 0;
+	ged_log_buf_free(ghLogBuf_HWC);
+	ghLogBuf_HWC = 0;
+	ged_log_buf_free(ghLogBuf_HWC_ERR);
+	ghLogBuf_HWC_ERR = 0;
+
+#ifdef GED_DEBUG
+	ged_log_buf_free(ghLogBuf_GED);
+	ghLogBuf_GED = 0;
+	ged_log_buf_free(ghLogBuf_GLES);
+	ghLogBuf_GLES = 0;
+#endif
+
+	ged_log_buf_free(ghLogBuf_GPU);
+	ghLogBuf_GPU = 0;
+#endif /* GED_BUFFER_LOG_DISABLE */
+
+	ged_gpu_tuner_exit();
+
+	ged_kpi_system_exit();
+
+	ged_ge_exit();
+
+	ged_dvfs_system_exit();
+
+	ged_notify_sw_vsync_system_exit();
+
+	ged_hal_exit();
+
+	ged_log_system_exit();
+
+#ifdef GED_DEBUG_FS
+	ged_debugFS_exit();
+#endif
+
+	ged_sysfs_exit();
+
+	remove_proc_entry(GED_DRIVER_DEVICE_NAME, NULL);
+
+	platform_driver_unregister(&g_ged_pdrv);
 }
 
+/*
+ * register the ged driver, create fs node
+ */
+static int ged_init(void)
+{
+	GED_ERROR err = GED_ERROR_FAIL;
+
+	GED_LOGI("@%s: start to initialize ged driver\n", __func__);
+
+	/* register platform driver */
+	err = platform_driver_register(&g_ged_pdrv);
+	if (err) {
+		GED_LOGE("@%s: failed to register ged driver\n", __func__);
+		goto ERROR;
+	}
+
+	GED_LOGI("@%s: ged driver init done\n", __func__);
+
+ERROR:
+	return err;
+}
+#ifdef GED_MODULE_LATE_INIT
+late_initcall(ged_init);
+#else
 module_init(ged_init);
+#endif
 module_exit(ged_exit);
 
+MODULE_DEVICE_TABLE(of, g_ged_of_match);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("MediaTek GED Driver");
 MODULE_AUTHOR("MediaTek Inc.");

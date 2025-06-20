@@ -1,14 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifndef __ION_DRV_H__
@@ -16,7 +8,7 @@
 #include <linux/version.h>
 #include <linux/seq_file.h>
 
-#include <ion.h>
+#include "../ion.h"
 
 #define BACKTRACE_SIZE 10
 
@@ -253,8 +245,13 @@ struct ion_mm_data {
 
 #ifdef __KERNEL__
 #define ION_LOG_TAG "ion_dbg"
-#define IONMSG(string, args...)	pr_err("[ION]"string, ##args)
-#define IONDBG(string, args...)	pr_debug("[ION]"string, ##args)
+/* use these can write over than 80 char message without check-service error */
+#define ion_err(string, args...)     pr_err("[ION]" string, ##args)
+#define ion_info(string, args...)    pr_info("[ION]" string, ##args)
+#define ion_debug(string, args...)   pr_debug("[ION]" string, ##args)
+/* original message print */
+#define IONMSG(string, args...)	     pr_err("[ION]" string, ##args)
+#define IONDBG(string, args...)	     pr_debug("[ION]" string, ##args)
 
 /* Exported global variables */
 extern struct ion_device *g_ion_device;
@@ -282,6 +279,7 @@ typedef int (ion_mm_buf_destroy_callback_t)(struct ion_buffer *buffer,
 					    unsigned int phy_addr);
 int ion_mm_heap_register_buf_destroy_cb(struct ion_buffer *buffer,
 					ion_mm_buf_destroy_callback_t *fn);
+
 struct ion_heap *ion_mm_heap_create(struct ion_platform_heap *unused);
 void ion_mm_heap_destroy(struct ion_heap *heap);
 

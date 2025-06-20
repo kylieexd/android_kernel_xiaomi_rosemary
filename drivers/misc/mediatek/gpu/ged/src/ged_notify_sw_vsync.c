@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 
@@ -30,6 +22,8 @@
 #include "ged_base.h"
 #include "ged_monitor_3D_fence.h"
 #include "ged.h"
+
+#undef CONFIG_MTK_QOS_V1_SUPPORT
 
 #ifdef CONFIG_MTK_QOS_V1_SUPPORT
 #include <mtk_gpu_bw.h>
@@ -300,11 +294,11 @@ GED_ERROR ged_notify_sw_vsync(GED_VSYNC_TYPE eType,
 	}
 #ifdef GED_DVFS_DEBUG
 	if (eType == GED_VSYNC_HW_EVENT)
-		GED_LOGE("[5566] HW VSYNC: llDiff=",
+		GED_LOGD("HW VSYNC: llDiff=",
 		"%lld, hw_vsync_ts=%llu, sw_vsync_ts=%llu\n", llDiff,
 		hw_vsync_ts, sw_vsync_ts);
 	else
-		GED_LOGE("[5566] SW VSYNC: llDiff=",
+		GED_LOGD("SW VSYNC: llDiff=",
 		"%lld, hw_vsync_ts=%llu, sw_vsync_ts=%llu\n", llDiff,
 		hw_vsync_ts, sw_vsync_ts);
 #endif		///	#ifdef GED_DVFS_DEBUG
@@ -335,7 +329,7 @@ GED_ERROR ged_notify_sw_vsync(GED_VSYNC_TYPE eType,
 	} else {
 		if (bHWEventKick) {
 #ifdef GED_DVFS_DEBUG
-			GED_LOGE("[5566] HW Event: kick!\n");
+			GED_LOGD("HW Event: kick!\n");
 #endif							/// GED_DVFS_DEBUG
 			ged_log_buf_print(ghLogBuf_DVFS,
 				"[GED_K] HW VSync: mending kick!");

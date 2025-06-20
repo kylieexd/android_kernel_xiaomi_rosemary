@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #include "ged_gpu_tuner.h"
@@ -606,6 +598,7 @@ int ged_bridge_gpu_tuner_status(
 		return GED_ERROR_INVALID_PARAMS;
 	}
 
+	in->name[GPU_TUNER_BUF_NAME_LEN - 1] = '\0';
 	GPU_TUNER_DEBUG("[%s][IN] name(%s)\n", __func__, in->name);
 
 	item.status.feature = 0;

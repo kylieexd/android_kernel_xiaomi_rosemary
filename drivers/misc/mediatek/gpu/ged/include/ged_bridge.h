@@ -1,14 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
 
 #ifndef __GED_BRIDGE_H__
@@ -92,12 +84,12 @@ int ged_bridge_ge_alloc(
 int ged_bridge_ge_get(
 	struct GED_BRIDGE_IN_GE_GET *psGET_IN,
 	struct GED_BRIDGE_OUT_GE_GET *psGET_OUT,
-	int output_package_size);
+	int output_buffer_size);
 
 int ged_bridge_ge_set(
 	struct GED_BRIDGE_IN_GE_SET *psSET_IN,
 	struct GED_BRIDGE_OUT_GE_SET *psSET_OUT,
-	int input_package_size);
+	int input_buffer_size);
 
 int ged_bridge_ge_info(
 	struct GED_BRIDGE_IN_GE_INFO *psINFO_IN,

@@ -86,6 +86,12 @@ ifeq ($(CONFIG_MTK_TRUSTED_MEMORY_SUBSYSTEM), y)
 	ccflags-y += -I$(srctree)/drivers/staging/android/ion
 endif
 
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/trusted_mem/public
+
+subdir-ccflags-y += -I$(srctree)/drivers/gpu/mediatek/mt-plat
+ccflags-y += -I$(srctree)/drivers/staging/android/mtk_ion/
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/ged/include/
+
 subdir-ccflags-y += $(DEFINES) -I$(KBASE_PATH)   -I$(KBASE_PLATFORM_PATH) -I$(UMP_PATH) -I$(srctree)/include/linux -I$(src)/include
 
 SRC := \

@@ -10,8 +10,6 @@ else ifeq ($(MTK_PLATFORM),mt6761)
 	ccflags-y += -DCONFIG_MACH_MT6761
 else ifeq ($(MTK_PLATFORM),mt6739)
 	ccflags-y += -DCONFIG_MACH_MT6739
-else ifeq ($(MTK_PLATFORM),mt8167)
-	ccflags-y += -DCONFIG_MACH_MT8167
 endif
 
 ccflags-$(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) += -DSSPM_DEBUG
@@ -253,9 +251,11 @@ ccflags-y += \
 ccflags-y += \
 	-I$(srctree)/drivers/staging/android/ion \
 	-I$(srctree)/drivers/staging/android/ion/mtk \
-	-I$(srctree)/drivers/misc/mediatek/gpu/ged/include \
+	-I$(srctree)/drivers/gpu/mediatek \
+	-I$(srctree)/drivers/gpu/mediatek/ged/include \
+	-I$(srctree)/drivers/gpu/mediatek/mt-plat \
+	-I$(srctree)/drivers/gpu/mediatek/gpufreq/include \
+	-I$(srctree)/drivers/gpu/mediatek/gpu_bm \
 	-I$(srctree)/drivers/misc/mediatek/include/mt-plat \
-	-I$(srctree)/drivers/misc/mediatek/gpu/gpu_bm \
-	-I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)
 
 obj-$(CONFIG_MTK_GPU_SUPPORT) += pvrsrvkm.o

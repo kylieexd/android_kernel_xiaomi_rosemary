@@ -1,15 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2019 MediaTek Inc.
  */
+
 #include <linux/spinlock.h>
 #include <linux/uaccess.h>
 #include <linux/dma-mapping.h>
@@ -21,11 +14,11 @@
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/seq_file.h>
-#include "ion_priv.h"
+#include "../ion_priv.h"
 #include "ion_fb_heap.h"
 #include "ion_drv_priv.h"
-#include "mtk/ion_drv.h"
-#include "mtk/mtk_ion.h"
+#include "ion_drv.h"
+#include "mtk_ion.h"
 //tablet
 #ifdef CONFIG_MTK_IOMMU
 #include "pseudo_m4u.h"
@@ -260,13 +253,13 @@ do {\
 	if (file)\
 		seq_printf(file, fmat, ##args);\
 	else\
-		printk(fmat, ##args);\
+		pr_info(fmt, ##args);\
 } while (0)
 
 static void ion_fb_chunk_show(struct gen_pool *pool,
 			      struct gen_pool_chunk *chunk, void *data)
 {
-	unsigned int order, nlongs, nbits, i;
+	int order, nlongs, nbits, i;
 	struct seq_file *s = (struct seq_file *)data;
 
 	order = pool->min_alloc_order;
@@ -293,7 +286,8 @@ static int ion_fb_heap_debug_show(struct ion_heap *heap, struct seq_file *s,
 
 	ION_DUMP(s,
 		 "********************************************************\n");
-	ION_DUMP(s, "total_size=0x%x, free=0x%x\n", (unsigned int)total_size,
+	ION_DUMP(s, "total_size=0x%x, free=0x%x\n",
+		 (unsigned int)total_size,
 		 (unsigned int)size_avail);
 	ION_DUMP(s,
 		 "********************************************************\n");
