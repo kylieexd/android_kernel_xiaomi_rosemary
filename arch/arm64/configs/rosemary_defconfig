@@ -491,6 +491,7 @@ CONFIG_MTK_VOW_MAX_PDK_NUMBER=1
 CONFIG_MTK_VOW_DSP_VERSION="ver01"
 CONFIG_HS_MIC_RECORD_NOISE_PD_CHG=y
 CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE=y
+CONFIG_USERFAULTFD=y
 
 
 #The user version requires removing the debug function and improving performance
