@@ -51,8 +51,12 @@
 #include <linux/build_bug.h>
 #else
 // Stringify the expression if no message is given.
+#ifndef static_assert
 #define static_assert(e, ...)  __static_assert(e, #__VA_ARGS__, #e)
+#endif
+#ifndef __static_assert
 #define __static_assert(e, msg, ...) _Static_assert(e, msg)
+#endif
 #endif
 
 #if KERNEL_VERSION(4, 16, 0) >= LINUX_VERSION_CODE
